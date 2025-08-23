@@ -188,63 +188,6 @@
         view.focus();
     }
 
-    function checkEquationEnd(inputText) {
-        const result = {
-            "公式末尾缺乏标点": []
-        };
-        const regex = /([^., ])\s*(?<!\\)(?:\\\\)\s*\n\s*\\end{equation}/g;
-        const lines = inputText.split('\n');
-        let match;
-        while ((match = regex.exec(inputText)) !== null) {
-            console.log(match[1]);
-            const matchStartIndex = match.index;
-            let lineNumber = 1;
-            let charCount = 0;
-            for (let i = 0; i < lines.length; i++) {
-                charCount += lines[i].length + 1;
-                if (matchStartIndex < charCount) {
-                    lineNumber = i + 1;
-                    break;
-                }
-            }
-            result["公式末尾缺乏标点"].push(lineNumber);
-        }
-        return result;
-    }
-
-    function checkDuplicateAbbreviations(inputText) {
-        const result = {
-            "存在重复定义的缩写": []
-        };
-
-        const seenAbbreviations = new Set();
-        const lines = inputText.split('\n');
-        const regex = /\(([^() ]+)\)/g;
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const lineNumber = i + 1;
-            let match;
-
-            while ((match = regex.exec(line)) !== null) {
-                const abbreviation = match[1];
-
-                if (seenAbbreviations.has(abbreviation) && !['a', 'b', '1', '2', '3', 'lr'].includes(abbreviation)) {
-                    // 如果是重复的，添加到结果中
-                    if (!result["存在重复定义的缩写"].includes(lineNumber)) {
-                        console.log(abbreviation);
-                        result["存在重复定义的缩写"].push(lineNumber);
-                    }
-                } else {
-                    seenAbbreviations.add(abbreviation);
-                }
-            }
-        }
-
-        return result;
-    }
-
-
     function extractNewCommands(inputText) {
         const regex = /\\newcommand{\\([^}]+)}/g;
         const commands = [];
@@ -257,193 +200,207 @@
         return commands;
     }
 
-    function checkSpaceAfterCommand(inputText) {
-        const result = {
-            "未处理变量名后的空格": []
-        };
-
-        const commands = extractNewCommands(inputText);
-
-        if (commands.length === 0) {
-            return result;
-        }
-
-        const commandRegex = new RegExp(`\\\\(${commands.join('|')}) +([^&])`, 'g');
-        const lines = inputText.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const lineNumber = i + 1;
-            let match;
-
-            while ((match = commandRegex.exec(line)) !== null) {
-                if (!result["未处理变量名后的空格"].includes(lineNumber)) {
-                    result["未处理变量名后的空格"].push(lineNumber);
+    // 定义检查函数列表
+    const checkFunctions = [
+        {
+            name: "公式末尾缺乏标点",
+            func: (inputText) => {
+                const result = [];
+                const regex = /([^., ])\s*(?<!\\)(?:\\\\)\s*\n\s*\\end{equation}/g;
+                const lines = inputText.split('\n');
+                let match;
+                while ((match = regex.exec(inputText)) !== null) {
+                    const matchStartIndex = match.index;
+                    let lineNumber = 1;
+                    let charCount = 0;
+                    for (let i = 0; i < lines.length; i++) {
+                        charCount += lines[i].length + 1;
+                        if (matchStartIndex < charCount) {
+                            lineNumber = i + 1;
+                            break;
+                        }
+                    }
+                    result.push(lineNumber);
                 }
+                return result;
             }
-            // 重置正则表达式的lastIndex，以便下次循环能正确匹配
-            commandRegex.lastIndex = 0;
-        }
+        },
+        {
+            name: "存在重复定义的缩写",
+            func: (inputText) => {
+                const result = [];
+                const seenAbbreviations = new Set();
+                const lines = inputText.split('\n');
+                const regex = /\(([^() ]+)\)/g;
 
-        return result;
-    }
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const lineNumber = i + 1;
+                    let match;
 
+                    while ((match = regex.exec(line)) !== null) {
+                        const abbreviation = match[1];
 
-    function checkLatexQuotes(inputText) {
-        const result = {
-            "latex引号使用不当": []
-        };
-
-        const regex = /(?:'[^`']+'(?![^'])|''[^`'"]+''(?![^`'])|"[^`'"]+''(?![^`'])|''[^`'"]+"(?![^`']))/g;
-
-        const lines = inputText.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            let match;
-
-            regex.lastIndex = 0;
-
-            if ((match = regex.exec(line)) !== null) {
-                result["latex引号使用不当"].push(i + 1);
-            }
-        }
-
-        return result;
-    }
-
-    function checkDashes(inputText) {
-        const result = {
-            "横符使用不当": []
-        };
-
-        const dashRegex = /–|—/g;
-
-        const lines = inputText.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-
-            dashRegex.lastIndex = 0;
-            if (dashRegex.test(line)) {
-                result["横符使用不当"].push(i + 1);
-            }
-        }
-        return result;
-    }
-
-    function checkPoint(inputText) {
-        const result = {
-            "句号使用不当": []
-        };
-
-        const lines = inputText.split('\n');
-
-        const pattern = /(\s\.|\.(?!com|org|net|gov|edu)[a-zA-Z])/;
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (pattern.test(line)) {
-                result["句号使用不当"].push(i + 1);
-            }
-        }
-
-        return result;
-    }
-
-    function checkWhereAfterEquation(inputText) {
-        const result = {
-            "公式后面的where位置不对": []
-        };
-
-        const regex = /\\end\{equation\}\s*(?:\n\s*){2,}where/gi;
-        const lines = inputText.split('\n');
-
-        let match;
-        while ((match = regex.exec(inputText)) !== null) {
-            const matchStartIndex = match.index;
-            let lineNumber = 1;
-            let charCount = 0;
-
-            for (let i = 0; i < lines.length; i++) {
-                charCount += lines[i].length + 1;
-
-                if (matchStartIndex < charCount) {
-                    lineNumber = i + 1;
-                    break;
+                        if (seenAbbreviations.has(abbreviation) && !['a', 'b', '1', '2', '3', 'lr'].includes(abbreviation)) {
+                            if (!result.includes(lineNumber)) {
+                                result.push(lineNumber);
+                            }
+                        } else {
+                            seenAbbreviations.add(abbreviation);
+                        }
+                    }
                 }
+                return result;
             }
+        },
+        {
+            name: "未处理变量名后的空格",
+            func: (inputText) => {
+                const result = [];
+                const commands = extractNewCommands(inputText);
 
-            result["公式后面的where位置不对"].push(lineNumber);
-        }
+                if (commands.length === 0) {
+                    return result;
+                }
 
-        return result;
-    }
+                const commandRegex = new RegExp(`\\\\(${commands.join('|')}) +([^&])`, 'g');
+                const lines = inputText.split('\n');
 
-    function checkAdjacentCitation(inputText) {
-        const result = {
-            "连续引用未合并": []
-        };
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const lineNumber = i + 1;
+                    let match;
 
-        if (!inputText) return result;
+                    while ((match = commandRegex.exec(line)) !== null) {
+                        if (!result.includes(lineNumber)) {
+                            result.push(lineNumber);
+                        }
+                    }
+                    commandRegex.lastIndex = 0;
+                }
+                return result;
+            }
+        },
+        {
+            name: "latex引号使用不当",
+            func: (inputText) => {
+                const result = [];
+                const regex = /(?:'[^`']+'(?![^'])|''[^`'"]+''(?![^`'])|"[^`'"]+''(?![^`'])|''[^`'"]+"(?![^`']))/g;
+                const lines = inputText.split('\n');
 
-        const lines = inputText.split('\n');
-        const pattern = /\\cite\{[^}]+\}\\cite\{[^}]+\}/g;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    let match;
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const matches = line.match(pattern);
+                    regex.lastIndex = 0;
+                    if ((match = regex.exec(line)) !== null) {
+                        result.push(i + 1);
+                    }
+                }
+                return result;
+            }
+        },
+        {
+            name: "横符使用不当",
+            func: (inputText) => {
+                const result = [];
+                const dashRegex = /–|—/g;
+                const lines = inputText.split('\n');
 
-            if (matches && matches.length > 0) {
-                result["连续引用未合并"].push(i + 1);
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    dashRegex.lastIndex = 0;
+                    if (dashRegex.test(line)) {
+                        result.push(i + 1);
+                    }
+                }
+                return result;
+            }
+        },
+        {
+            name: "句号使用不当",
+            func: (inputText) => {
+                const result = [];
+                const lines = inputText.split('\n');
+                const pattern = /(\s\.|\.(?!com|org|net|gov|edu)[a-zA-Z])/;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (pattern.test(line)) {
+                        result.push(i + 1);
+                    }
+                }
+                return result;
+            }
+        },
+        {
+            name: "公式后面的where位置不对",
+            func: (inputText) => {
+                const result = [];
+                const regex = /\\end\{equation\}\s*(?:\n\s*){2,}where/gi;
+                const lines = inputText.split('\n');
+
+                let match;
+                while ((match = regex.exec(inputText)) !== null) {
+                    const matchStartIndex = match.index;
+                    let lineNumber = 1;
+                    let charCount = 0;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        charCount += lines[i].length + 1;
+                        if (matchStartIndex < charCount) {
+                            lineNumber = i + 1;
+                            break;
+                        }
+                    }
+                    result.push(lineNumber);
+                }
+                return result;
+            }
+        },
+        {
+            name: "连续引用未合并",
+            func: (inputText) => {
+                const result = [];
+                if (!inputText) return result;
+
+                const lines = inputText.split('\n');
+                const pattern = /\\cite\{[^}]+\}\\cite\{[^}]+\}/g;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const matches = line.match(pattern);
+
+                    if (matches && matches.length > 0) {
+                        result.push(i + 1);
+                    }
+                }
+                return result;
             }
         }
-
-        return result;
-    }
+    ];
 
     // 总检查函数
     const performAllChecks = (currentContent) => {
         clearFloatingContent();
         addNotification('正在检查文档内容...');
 
-        // 检查公式错误
-        const equationResult = checkEquationEnd(currentContent);
-        // 检查重复缩写
-        const abbreviationResult = checkDuplicateAbbreviations(currentContent);
-        // 检查是否处理变量后的空格
-        const spaceAfterCommandResult = checkSpaceAfterCommand(currentContent);
-        // 检查latex格式的引用使用
-        const latexQuotesResult = checkLatexQuotes(currentContent);
-        // 检查横符使用情况
-        const dashesResult = checkDashes(currentContent);
-        // 检查句号使用情况
-        const pointResult = checkPoint(currentContent);
-        // 检查公式后面的where是否靠近
-        const whereAfterEquationResult = checkWhereAfterEquation(currentContent);
-        // 检查连续引用情况
-        const adjacentCitationResult = checkAdjacentCitation(currentContent);
+        const allResults = {};
 
-        // 合并检查结果
-        const allResults = {
-            ...equationResult,
-            ...abbreviationResult,
-            ...spaceAfterCommandResult,
-            ...latexQuotesResult,
-            ...dashesResult,
-            ...pointResult,
-            ...whereAfterEquationResult,
-            ...adjacentCitationResult
-        };
+        // 遍历检查函数列表
+        checkFunctions.forEach(check => {
+            const result = check.func(currentContent);
+            if (result.length > 0) {
+                allResults[check.name] = result;
+            }
+        });
 
         // 显示所有检查结果
         for (const [errorType, lines] of Object.entries(allResults)) {
-            if (lines.length > 0) {
-                addErrorResult(errorType, lines);
-            }
+            addErrorResult(errorType, lines);
         }
 
-        if (Object.values(allResults).every(arr => arr.length === 0)) {
+        if (Object.keys(allResults).length === 0) {
             addNotification('检查完成，未发现问题。');
         } else {
             addNotification('检查完成，请查看上方错误。');

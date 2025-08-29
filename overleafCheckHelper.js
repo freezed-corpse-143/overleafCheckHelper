@@ -377,6 +377,64 @@
                 }
                 return result;
             }
+        },
+        {
+            name: "method不应用于自己",
+            func: (inputText) => {
+                const lines = inputText.split('\n');
+                let positions = [];
+
+                const regex = /\b(?:our|Our) method\b[^A-Za-z]/gi;
+
+                lines.forEach((line, index) => {
+                    if(regex.test(line)) {
+                        positions.push(index + 1);
+                    }
+                });
+                return positions;
+            }
+        },
+        {
+            name: "section中的单词没有都首字母大写",
+            func: (inputText) => {
+                const lines = inputText.split('\n');
+                const resultLines = [];
+
+                const extractOuterBracesContent = (str) => {
+                    let stack = [];
+                    let startIndex = -1;
+                    for (let i = 0; i < str.length; i++) {
+                        if (str[i] === '{') {
+                            if (!stack.length) {
+                                startIndex = i;
+                            }
+                            stack.push('{');
+                        } else if (str[i] === '}') {
+                            stack.pop();
+                            if (!stack.length) {
+                                return str.substring(startIndex + 1, i);
+                            }
+                        }
+                    }
+                    return null;
+                };
+
+                const sectionPattern = /\\[A-Za-z]*section/;
+
+                lines.forEach((line, index) => {
+                    if (sectionPattern.test(line)) {
+                        const content = extractOuterBracesContent(line);
+                        if (content) {
+                            const wordPattern = /\s[a-z]\w*/;
+                            if (wordPattern.test(content)) {
+                                resultLines.push(index + 1);
+                            }
+                        }
+                    }
+                });
+
+                return resultLines;
+            }
         }
     ];
 

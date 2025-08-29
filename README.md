@@ -13,9 +13,8 @@ The script checks for the following LaTeX issues:
    - Identifies repeated abbreviations in parentheses (e.g., (abbr))
    - Excludes common exceptions like 'a', 'b', '1', '2', '3', 'lr'
 
-3. **Unhandled spaces after custom commands**
-   - Checks for spaces after user-defined commands (from \newcommand)
-   - Flags cases where spaces might affect command behavior
+3. **Missing "{}" after custom commands**
+   - Checks for "{}" after user-defined commands (from \newcommand)
 
 4. **Improper LaTeX quote usage**
    - Detects incorrect combinations of single and double quotes

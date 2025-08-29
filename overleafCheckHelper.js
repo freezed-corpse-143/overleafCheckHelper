@@ -254,7 +254,7 @@
             }
         },
         {
-            name: "未处理变量名后的空格",
+            name: "变量后未添加{}",
             func: (inputText) => {
                 const result = [];
                 const commands = extractNewCommands(inputText);
@@ -263,7 +263,7 @@
                     return result;
                 }
 
-                const commandRegex = new RegExp(`\\\\(${commands.join('|')}) +([^&])`, 'g');
+                const commandRegex = new RegExp(`\\\\(${commands.join('|')})(?![{}]|$)`, 'g');
                 const lines = inputText.split('\n');
 
                 for (let i = 0; i < lines.length; i++) {
@@ -322,11 +322,11 @@
             func: (inputText) => {
                 const result = [];
                 const lines = inputText.split('\n');
-                const pattern = /(\s\.|\.(?!com|org|net|gov|edu)[a-zA-Z])/;
+                const pattern = /(\s\.|\.(?!com|org|net|gov|edu|\})[a-zA-Z])/;
 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
-                    if (pattern.test(line)) {
+                    if (!line.includes("e.g.") && pattern.test(line)) {
                         result.push(i + 1);
                     }
                 }

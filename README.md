@@ -36,6 +36,21 @@ The script checks for the following LaTeX issues:
    - Detects consecutive \cite commands that could be merged
    - Example: \cite{a}\cite{b} should be \cite{a,b}
 
+9. **Inappropriate self-reference to "method"**
+   - Detects phrases like "our method" or "Our method" that may inappropriately refer to the author's own work
+   - Avoids self-referential language in academic writing
+
+10. **Inconsistent capitalization in section titles**
+    - Checks section headings (e.g., \section, \subsection) for proper title case
+    - Identifies lowercase words that should be capitalized in section titles
+    - Extracts content within braces to analyze capitalization patterns
+
+11. **Unused abbreviation definitions**
+    - Identifies abbreviations defined in parentheses that are never used elsewhere in the text
+    - Tracks both definition positions and usage occurrences
+    - Excludes common single-letter abbreviations and special cases
+    - Reports line numbers where abbreviations are defined but not utilized
+
 ## Installation
 1. Install Tampermonkey extension for your browser
 2. Create a new script and paste the provided code

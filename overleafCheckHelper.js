@@ -435,6 +435,55 @@
 
                 return resultLines;
             }
+        },
+        {
+            name: "缩写未被使用",
+            func: (inputText) => {
+                const result = [];
+                const abbreviationPositions = {};
+                const usageCount = {};
+                const lines = inputText.split('\n');
+                const regex = /\(([^() ]+)\)/g;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const lineNumber = i + 1;
+                    let match;
+
+                    while ((match = regex.exec(line)) !== null) {
+                        const abbreviation = match[1];
+
+                        if (/^[a-zA-Z]+$/.test(abbreviation) && !['a', 'b', '1', '2', '3', 'lr', 'R'].includes(abbreviation)) {
+                            if (!abbreviationPositions[abbreviation]) {
+                                abbreviationPositions[abbreviation] = lineNumber;
+                                usageCount[abbreviation] = 1;
+                            }
+                        }
+
+                    }
+                }
+
+                const allAbbreviations = Object.keys(abbreviationPositions);
+
+                for (const abbreviation of allAbbreviations) {
+                    const usageRegex = new RegExp(`\\s${abbreviation}([^a-zA-Z]|$)`, 'g');
+
+                    const matches = inputText.match(usageRegex);
+
+                    if (matches && matches.length > 0) {
+                        usageCount[abbreviation] += 1;
+                    }
+                }
+
+                // 检查使用次数为1的缩写（只被定义，未被使用）
+                for (const [abbreviation, count] of Object.entries(usageCount)) {
+                    if (count === 1) {
+                        result.push(abbreviationPositions[abbreviation]);
+                    }
+                }
+
+                return result;
+            }
         }
     ];
 

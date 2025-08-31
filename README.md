@@ -71,6 +71,9 @@ The script checks for the following LaTeX issues:
 - Identifies `\begin{equation}` environments that have more than one blank line preceding them
 - Ensures proper spacing between equations and preceding paragraphs
 
+## 16. Excessive Line Breaks Before Itemize
+- Identifies `\begin{itemize}` environments that have more than one blank line preceding them
+- Ensures proper spacing between itemize and preceding paragraphs
 
 ## Installation
 1. Install Tampermonkey extension for your browser

@@ -67,11 +67,7 @@ The script checks for the following LaTeX issues:
 - Detects `\ref` commands that are not properly preceded by a tilde character (`~`)
 - Validates correct LaTeX reference formatting to prevent line breaks between references and preceding text
 
-## 15. Excessive Line Breaks Before Equations
-- Identifies `\begin{equation}` environments that have more than one blank line preceding them
-- Ensures proper spacing between equations and preceding paragraphs
-
-## 16. Excessive Line Breaks Before Itemize
+## 15. Excessive Line Breaks Before Itemize
 - Identifies `\begin{itemize}` environments that have more than one blank line preceding them
 - Ensures proper spacing between itemize and preceding paragraphs
 

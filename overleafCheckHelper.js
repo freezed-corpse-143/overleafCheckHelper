@@ -596,27 +596,6 @@
             }
         },
         {
-            name: "\\begin\{equation\}与上个段落之间超过1个换行符",
-            func: (inputText) => {
-                const lines = inputText.split('\n');
-                const result = [];
-
-                for (let i = 0; i < lines.length; i++) {
-                    const currentLine = lines[i];
-
-                    if (currentLine.includes('\\begin{equation}')) {
-                        // 检查上一行是否存在且为空字符串
-                        if (i > 0 && lines[i - 1].trim() === '') {
-                            // 行位置为索引+1
-                            result.push(i + 1);
-                        }
-                    }
-                }
-
-                return result;
-            }
-        },
-        {
             name: "\\begin\{itemize\}与上个段落之间超过1个换行符",
             func: (inputText) => {
                 const lines = inputText.split('\n');

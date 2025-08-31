@@ -484,6 +484,137 @@
 
                 return result;
             }
+        },
+        {
+            name: "图表缺乏标签属性",
+            func: (inputText) => {
+                const lines = inputText.split('\n');
+                const result = [];
+                let inChart = false;
+                let hasLabel = false;
+                let chartStartLine = 0;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const lineNumber = i + 1;
+
+                    // 检测图表开始
+                    if (line.includes('\\begin{table*}') || line.includes('\\begin{table}') || 
+                        line.includes('\\begin{figure*}') || line.includes('\\begin{figure}')) {
+                        inChart = true;
+                        hasLabel = false;
+                        chartStartLine = lineNumber;
+                    }
+
+                    // 检测label
+                    if (inChart && line.includes('\\label')) {
+                        hasLabel = true;
+                    }
+
+                    // 检测图表结束
+                    if (inChart && (line.includes('\\end{table*}') || line.includes('\\end{table}') || 
+                        line.includes('\\end{figure*}') || line.includes('\\end{figure}'))) {
+                        if (!hasLabel) {
+                            result.push(lineNumber);
+                        }
+                        inChart = false;
+                        hasLabel = false;
+                    }
+                }
+
+                return result;
+            }
+        },
+        {
+            name: "图表未被引用",
+            func: (inputText) => {
+                const lines = inputText.split('\n');
+                const labelDict = {};
+                let inChart = false;
+                const output = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const lineNumber = i + 1;
+
+                    // 检测图表开始
+                    if (line.includes('\\begin{table*}') || line.includes('\\begin{table}') ||
+                        line.includes('\\begin{figure*}') || line.includes('\\begin{figure}')) {
+                        inChart = true;
+                    }
+
+                    // 在图表范围内检测label
+                    if (inChart) {
+                        const labelMatch = line.match(/\\label\{([^}]+)\}/);
+                        if (labelMatch) {
+                            const labelKey = labelMatch[1];
+                            labelDict[labelKey] = lineNumber;
+                        }
+                    }
+
+                    // 检测图表结束
+                    if (inChart && (line.includes('\\end{table*}') || line.includes('\\end{table}') ||
+                                    line.includes('\\end{figure*}') || line.includes('\\end{figure}'))) {
+                        inChart = false;
+                    }
+                }
+
+                // 第二遍遍历：检查每个标签是否被引用
+                for (const [labelKey, lineNumber] of Object.entries(labelDict)) {
+                    const refPattern = new RegExp(`\\\\ref\\{${labelKey}\\}`);
+                    if (!refPattern.test(inputText)) {
+                        output.push(lineNumber);
+                    }
+                }
+
+                return output;
+            }
+        },
+        {
+            name: "不是~\\ref",
+            func: (inputText) => {
+                const lines = inputText.split('\n');
+                const result = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const refIndex = line.indexOf('\\ref');
+
+                    if (refIndex !== -1) {
+                        if (refIndex >= 2) {
+                            const prevTwoChars = line.substring(refIndex - 2, refIndex);
+                            if (!/^[a-zA-Z]~$/.test(prevTwoChars)) {
+                                result.push(i + 1);
+                            }
+                        } else {
+                            result.push(i + 1);
+                        }
+                    }
+                }
+
+                return result;
+            }
+        },
+        {
+            name: "\\begin\{equation\}与上个段落之间超过1个换行符",
+            func: (inputText) => {
+                const lines = inputText.split('\n');
+                const result = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    const currentLine = lines[i];
+
+                    if (currentLine.includes('\\begin{equation}')) {
+                        // 检查上一行是否存在且为空字符串
+                        if (i > 0 && lines[i - 1].trim() === '') {
+                            // 行位置为索引+1
+                            result.push(i + 1);
+                        }
+                    }
+                }
+
+                return result;
+            }
         }
     ];
 

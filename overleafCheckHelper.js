@@ -263,14 +263,20 @@
                     return result;
                 }
 
-                const commandRegex = new RegExp(`\\\\(${commands.join('|')})(?![{}]|$)`, 'g');
+                const commandRegex = new RegExp(`\\\\(${commands.join('|')})(?![{]|$)`, 'g');
+                const newCommandRegex = /\\newcommand/;
                 const lines = inputText.split('\n');
 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     const lineNumber = i + 1;
-                    let match;
 
+                    // 跳过包含 \newcommand 的行
+                    if (newCommandRegex.test(line)) {
+                        continue;
+                    }
+
+                    let match;
                     while ((match = commandRegex.exec(line)) !== null) {
                         if (!result.includes(lineNumber)) {
                             result.push(lineNumber);

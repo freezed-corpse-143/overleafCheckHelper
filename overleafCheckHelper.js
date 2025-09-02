@@ -8,6 +8,8 @@
 // @match        https://www.overleaf.com/project/*
 // @icon         https://www.google.com/s2/favicons?domain=overleaf.com
 // @grant        GM_addStyle
+// @downloadURL  https://raw.githubusercontent.com/freezed-corpse-143/overleafCheckHelper/refs/heads/master/overleafCheckHelper.js
+// @updateURL    https://raw.githubusercontent.com/freezed-corpse-143/overleafCheckHelper/refs/heads/master/overleafCheckHelper.js
 // ==/UserScript==
 
 (function() {
